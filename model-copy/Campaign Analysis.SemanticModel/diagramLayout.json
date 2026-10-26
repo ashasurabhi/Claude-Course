@@ -1,0 +1,74 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 852.38305001469371,
+            "y": 25
+          },
+          "nodeIndex": "_Measures",
+          "nodeLineageTag": "c791dae3-ad6b-48e9-b717-274a76b653c7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 618.38305001469371,
+            "y": -38.992555389798355
+          },
+          "nodeIndex": "Campaign",
+          "nodeLineageTag": "791c8ef0-3b0b-43fc-bfde-c393ab24a4e5",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 334.20156119318523,
+            "y": 19.85214257004634
+          },
+          "nodeIndex": "Campaign Results",
+          "nodeLineageTag": "fdb93921-a733-4e72-9a97-dac2462caff1",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": -7.0074446102016736
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "e59ba95e-4d74-4381-b7dd-0d5ddd7e9c84",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

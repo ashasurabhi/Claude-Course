@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "012aeb7cf816562d0c38",
+  "position": {
+    "x": 1532,
+    "y": 104,
+    "z": 14000,
+    "height": 56,
+    "width": 348,
+    "tabOrder": 14000
+  },
+  "visualGroup": {
+    "displayName": "Week (cards only)",
+    "groupMode": "ScaleMode"
+  }
+}

@@ -1,0 +1,15 @@
+**Headline:** The Q3 forecast model was finished and the duplicate customer keys in the staging load were fixed.
+
+**Completed**
+- Q3 forecast model finished [Priya]
+- Duplicate customer keys in the staging load fixed [Tom]
+
+**In progress**
+- Onboarding checklist [Lena]
+- Planning the Thursday model review [Priya]
+
+**Blocked**
+- March invoice data, waiting on Finance [Tom]
+
+**Tomorrow**
+- Thursday model review [Priya]

@@ -1,0 +1,88 @@
+/// One row per campaign (5,000). Holds the campaign attributes, which are constant for the whole campaign.
+table Campaign
+	lineageTag: 791c8ef0-3b0b-43fc-bfde-c393ab24a4e5
+
+	column Campaign_ID
+		dataType: string
+		lineageTag: 1cc80459-b06c-4de2-a492-c0fe0116ecda
+		summarizeBy: none
+		sourceColumn: Campaign_ID
+
+	column Company
+		dataType: string
+		lineageTag: 00dca4f7-d548-4b84-8c53-a76e254c1067
+		summarizeBy: none
+		sourceColumn: Company
+
+	column Campaign_Type
+		dataType: string
+		lineageTag: 4b766853-dc81-4e82-823c-2075de33563a
+		summarizeBy: none
+		sourceColumn: Campaign_Type
+
+	column Channel_Used
+		dataType: string
+		lineageTag: ad73f915-8eca-40aa-88f2-897da30e7477
+		summarizeBy: none
+		sourceColumn: Channel_Used
+
+	column Customer_Segment
+		dataType: string
+		lineageTag: 8c9f9e24-886a-450c-a62d-40387a3e7dac
+		summarizeBy: none
+		sourceColumn: Customer_Segment
+
+	column Target_Audience
+		dataType: string
+		lineageTag: 9cc33724-7d04-4706-87ec-e63337a4addc
+		summarizeBy: none
+		sourceColumn: Target_Audience
+
+	/// Planned length of the campaign in days. Converted from the source text such as "45 days".
+	column 'Duration (Days)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 816ab111-8ec4-4237-944b-b177af773af2
+		summarizeBy: none
+		sourceColumn: Duration (Days)
+
+	/// First day of the campaign. A campaign attribute only: not related to the Date table.
+	column Start_Date
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: e333b4e0-0ac4-4095-be28-85d2eea70bbf
+		summarizeBy: none
+		sourceColumn: Start_Date
+
+	/// Campaign type and channel together, for example "Display / Website". Keeps Instagram under Influencer separate from Instagram under Social Media.
+	column 'Type and Channel' = 'Campaign'[Campaign_Type] & " / " & 'Campaign'[Channel_Used]
+		dataType: string
+		lineageTag: 7543d6ea-50e4-4e8c-9454-fc9d413298e0
+		summarizeBy: none
+
+	hierarchy 'Type and Channel Hierarchy'
+		lineageTag: 468c9e84-9d3d-4af0-9af5-e191c66dac85
+
+		level 'Campaign Type'
+			lineageTag: a790b1ff-7751-455f-877f-4774b1a5a19b
+			column: Campaign_Type
+
+		level Channel
+			lineageTag: e6a2dbf7-393e-44df-bfc2-74271e6bfe0b
+			column: Channel_Used
+
+	partition Campaign = m
+		mode: import
+		source =
+				let
+				    Source = #"Campaign Source",
+				    Selected = Table.SelectColumns(Source, {"Campaign_ID", "Company", "Campaign_Type", "Channel_Used", "Customer_Segment", "Target_Audience", "Duration", "Start_Date"}),
+				    Distinct = Table.Distinct(Selected),
+				    DurationDays = Table.AddColumn(Distinct, "Duration (Days)", each Number.FromText(Text.BeforeDelimiter([Duration], " "), "en-AU"), Int64.Type),
+				    RemovedDuration = Table.RemoveColumns(DurationDays, {"Duration"}),
+				    StartDate = Table.TransformColumns(RemovedDuration, {{"Start_Date", each Date.FromText(_, [Format = "dd/MM/yyyy", Culture = "en-AU"]), type date}}),
+				    Typed = Table.TransformColumnTypes(StartDate, {{"Campaign_ID", type text}, {"Company", type text}, {"Campaign_Type", type text}, {"Channel_Used", type text}, {"Customer_Segment", type text}, {"Target_Audience", type text}}),
+				    Ordered = Table.ReorderColumns(Typed, {"Campaign_ID", "Company", "Campaign_Type", "Channel_Used", "Customer_Segment", "Target_Audience", "Duration (Days)", "Start_Date"})
+				in
+				    Ordered
+

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "8b0e85a424474112b7dd",
+  "position": {
+    "x": 786,
+    "y": 216,
+    "z": 24000,
+    "height": 144,
+    "width": 348,
+    "tabOrder": 24000
+  },
+  "visualGroup": {
+    "displayName": "ROAS",
+    "groupMode": "ScaleMode"
+  }
+}

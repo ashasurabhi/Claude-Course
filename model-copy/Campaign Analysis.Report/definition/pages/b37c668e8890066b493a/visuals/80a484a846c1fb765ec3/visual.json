@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "80a484a846c1fb765ec3",
+  "position": {
+    "x": 1159,
+    "y": 216,
+    "z": 27000,
+    "height": 144,
+    "width": 348,
+    "tabOrder": 27000
+  },
+  "visualGroup": {
+    "displayName": "CPA",
+    "groupMode": "ScaleMode"
+  }
+}

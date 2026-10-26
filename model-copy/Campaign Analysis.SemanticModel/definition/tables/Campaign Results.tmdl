@@ -1,0 +1,69 @@
+/// One row per campaign per day (188,400 rows). Key: Campaign_ID + Date.
+table 'Campaign Results'
+	lineageTag: fdb93921-a733-4e72-9a97-dac2462caff1
+
+	column Campaign_ID
+		dataType: string
+		lineageTag: b64ba9bd-d3e2-49df-b12e-c0ccb70439dd
+		summarizeBy: none
+		sourceColumn: Campaign_ID
+
+	column Date
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: b3c6df73-0af5-4253-b080-b0ffc246a282
+		summarizeBy: none
+		sourceColumn: Date
+
+	/// Spend for this campaign on this day. Source column Acquisition_Cost. This is spend, not a cost per acquisition.
+	column 'Daily Spend'
+		dataType: decimal
+		formatString: $#,##0.00
+		lineageTag: 60ae1190-eb3f-47a7-a506-5b583ddee11f
+		summarizeBy: sum
+		sourceColumn: Daily Spend
+
+	/// Revenue for this campaign on this day. Source column Revenue. Treated as gross, as recorded.
+	column 'Daily Revenue'
+		dataType: decimal
+		formatString: $#,##0.00
+		lineageTag: 630de663-e3a8-4aac-bdf3-1d097e657633
+		summarizeBy: sum
+		sourceColumn: Daily Revenue
+
+	/// Clicks for this campaign on this day. Source column Clicks.
+	column 'Daily Clicks'
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 22357de6-eefe-4378-9215-83d14ff02e78
+		summarizeBy: sum
+		sourceColumn: Daily Clicks
+
+	/// Impressions for this campaign on this day. Source column Impressions.
+	column 'Daily Impressions'
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 62c6974f-ec53-4f34-bd19-b3becb21bfa4
+		summarizeBy: sum
+		sourceColumn: Daily Impressions
+
+	/// Conversions (purchases) for this campaign on this day. Source column Conversions.
+	column 'Daily Conversions'
+		dataType: int64
+		formatString: #,##0
+		lineageTag: f253f6d3-5bdf-43bf-a1f2-0c9b2372af94
+		summarizeBy: sum
+		sourceColumn: Daily Conversions
+
+	partition 'Campaign Results' = m
+		mode: import
+		source =
+				let
+				    Source = #"Campaign Source",
+				    Selected = Table.SelectColumns(Source, {"Campaign_ID", "Date", "Acquisition_Cost", "Revenue", "Clicks", "Impressions", "Conversions"}),
+				    Renamed = Table.RenameColumns(Selected, {{"Acquisition_Cost", "Daily Spend"}, {"Revenue", "Daily Revenue"}, {"Clicks", "Daily Clicks"}, {"Impressions", "Daily Impressions"}, {"Conversions", "Daily Conversions"}}),
+				    Typed = Table.TransformColumns(Renamed, {{"Date", each Date.FromText(_, [Format = "dd/MM/yyyy", Culture = "en-AU"]), type date}, {"Daily Spend", each Number.FromText(Text.Replace(Text.Replace(_, "$", ""), ",", ""), "en-AU"), Currency.Type}, {"Daily Revenue", each Number.FromText(Text.Replace(Text.Replace(_, "$", ""), ",", ""), "en-AU"), Currency.Type}, {"Daily Clicks", each Number.FromText(_, "en-AU"), Int64.Type}, {"Daily Impressions", each Number.FromText(_, "en-AU"), Int64.Type}, {"Daily Conversions", each Number.FromText(_, "en-AU"), Int64.Type}}),
+				    CampaignID = Table.TransformColumnTypes(Typed, {{"Campaign_ID", type text}})
+				in
+				    CampaignID
+

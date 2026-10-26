@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "7049d7a492d60ff949b9",
+  "position": {
+    "x": 1532,
+    "y": 216,
+    "z": 30000,
+    "height": 144,
+    "width": 348,
+    "tabOrder": 30000
+  },
+  "visualGroup": {
+    "displayName": "Active Campaigns",
+    "groupMode": "ScaleMode"
+  }
+}

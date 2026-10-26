@@ -1,0 +1,63 @@
+{
+  "name": "MIP-a7c3e915.json",
+  "dataColors": [
+    "#118DFF",
+    "#12239E",
+    "#8A8886",
+    "#E66C37",
+    "#6B007B",
+    "#E044A7",
+    "#744EC2",
+    "#D9B300",
+    "#D64550",
+    "#197278"
+  ],
+  "good": "#3D8A49",
+  "neutral": "#E8D166",
+  "bad": "#D64550",
+  "foreground": "#252423",
+  "foregroundNeutralSecondary": "#605E5C",
+  "foregroundNeutralTertiary": "#979695",
+  "background": "#FFFFFF",
+  "backgroundLight": "#EEEEEE",
+  "backgroundNeutral": "#D5D5D5",
+  "tableAccent": "#118DFF",
+  "textClasses": {
+    "callout": {
+      "fontSize": 30,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#252423"
+    },
+    "label": {
+      "fontSize": 10,
+      "fontFace": "Segoe UI",
+      "color": "#252423"
+    },
+    "title": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#252423"
+    },
+    "header": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#252423"
+    }
+  },
+  "visualStyles": {
+    "cardVisual": {
+      "*": {
+        "border": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#D5D5D5"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+/// Staged read of marketing_campaign_dataset.csv. Every column is text. Campaign Results and Campaign are derived from this query.
+expression 'Campaign Source' =
+		let
+		    Source = Csv.Document(File.Contents("C:\Agentic-Power-BI\_Demo_4\_data\marketing_campaign_dataset.csv"), [Delimiter = ",", Columns = 16, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+		    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars = true])
+		in
+		    PromotedHeaders
+	lineageTag: bdab22f1-2a3b-4909-b5af-ac95b72fb888
+

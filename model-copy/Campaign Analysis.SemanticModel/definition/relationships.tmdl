@@ -1,0 +1,8 @@
+relationship 'Campaign Results to Campaign'
+	fromColumn: 'Campaign Results'.Campaign_ID
+	toColumn: Campaign.Campaign_ID
+
+relationship 'Campaign Results to Date'
+	fromColumn: 'Campaign Results'.Date
+	toColumn: Date.Date
+

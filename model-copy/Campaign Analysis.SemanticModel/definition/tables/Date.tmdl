@@ -1,0 +1,73 @@
+/// One row per calendar day from the first to the last date in Campaign Results (393 days, no gaps). Calendar year and month only. Weeks start on Monday and partial weeks are kept.
+table Date
+	lineageTag: e59ba95e-4d74-4381-b7dd-0d5ddd7e9c84
+	dataCategory: Time
+
+	column Date
+		isUnique
+		formatString: dd/MM/yyyy
+		lineageTag: 92147efe-143c-49f2-9c56-5ea95e08fd9d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+	/// Calendar year. No fiscal year is used.
+	column Year = YEAR ( 'Date'[Date] )
+		dataType: int64
+		formatString: 0
+		lineageTag: 8c4b237d-68c1-450f-bce2-bcc9aee1034d
+		summarizeBy: none
+
+	/// Calendar month, 1 to 12. Sort key for Month.
+	column 'Month Number' = MONTH ( 'Date'[Date] )
+		dataType: int64
+		formatString: 0
+		lineageTag: 8efdf131-31c4-449d-9e8e-2ecc19924419
+		summarizeBy: none
+
+	/// Calendar month name, sorted by Month Number.
+	column Month = FORMAT ( 'Date'[Date], "mmmm" )
+		dataType: string
+		lineageTag: 12a336ab-e2d1-4874-a581-5c457542004e
+		summarizeBy: none
+		sortByColumn: 'Month Number'
+
+	/// Year and month as yyyy-mm, so months sort correctly across years.
+	column 'Year Month' = FORMAT ( 'Date'[Date], "yyyy-mm" )
+		dataType: string
+		lineageTag: 10e10773-c79e-4ec0-9b61-901240e6df4c
+		summarizeBy: none
+
+	/// The Monday on or before the date. Weeks start on Monday. The first week starts on Monday 28/12/2020, before the first date in the data.
+	column 'Week Start' = 'Date'[Date] - WEEKDAY ( 'Date'[Date], 2 ) + 1
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: 68b88ca8-7a64-4763-8551-eb6f440227fd
+		summarizeBy: none
+
+	/// Text of the Week Start date, sorted by Week Start.
+	column 'Week Label' = FORMAT ( 'Date'[Week Start], "dd mmm yyyy" )
+		dataType: string
+		lineageTag: a83492d9-1de4-4114-b575-f987c9d17d0e
+		summarizeBy: none
+		sortByColumn: 'Week Start'
+
+	/// Number of days of this week that are in the Date table. 7 for a full week; fewer for the partial first and last weeks.
+	column 'Days In Week' = CALCULATE ( COUNTROWS ( 'Date' ), ALLEXCEPT ( 'Date', 'Date'[Week Start] ) )
+		dataType: int64
+		formatString: 0
+		lineageTag: 3aaf973d-acb8-4f29-84f3-d3ef189714c8
+		summarizeBy: none
+
+	/// True for the week that contains the last date in Campaign Results. The current week is the last week in the data, not today's date. Evaluated at refresh.
+	column 'Is Current Week' =
+			VAR _lastDate = MAX ( 'Campaign Results'[Date] )
+			RETURN 'Date'[Week Start] = _lastDate - WEEKDAY ( _lastDate, 2 ) + 1
+		dataType: boolean
+		lineageTag: c1ef21e6-688c-41f7-8a48-ff2dcd20a9de
+		summarizeBy: none
+
+	partition Date = calculated
+		mode: import
+		source = CALENDAR ( MIN ( 'Campaign Results'[Date] ), MAX ( 'Campaign Results'[Date] ) )
+

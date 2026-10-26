@@ -1,0 +1,22 @@
+model Model
+	culture: en-AU
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-AU
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_ProTooling = ["MCP-PBIModeling","DevMode"]
+
+annotation PBI_QueryOrder = ["Campaign","Campaign Results","_Measures","Campaign Source"]
+
+ref table Campaign
+ref table 'Campaign Results'
+ref table Date
+ref table _Measures
+
+ref cultureInfo en-AU
+

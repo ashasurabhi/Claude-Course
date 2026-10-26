@@ -1,0 +1,294 @@
+/// Holds every measure in the model. Has no data and no relationships.
+table _Measures
+	lineageTag: c791dae3-ad6b-48e9-b717-274a76b653c7
+
+	/// Total daily spend across the campaign days in the current filter. Source column Acquisition_Cost. This is advertising spend, not a cost per acquisition. Additive.
+	measure Spend = SUM ( 'Campaign Results'[Daily Spend] )
+		lineageTag: 94f52830-5bd4-4394-a495-0ccfbdb93374
+
+		formatStringDefinition =
+				VAR _v = ABS ( [Spend] )
+				RETURN SWITCH ( TRUE (), _v >= 1000000, "$#,0,,.0\M", _v >= 1000, "$#,0,.0\K", "$#,##0.00" )
+
+	/// Total daily revenue for the campaigns in the current filter. Treated as gross, as recorded. Additive.
+	measure Revenue = SUM ( 'Campaign Results'[Daily Revenue] )
+		lineageTag: fdc80085-c230-4183-b047-cff6d4aaf006
+
+		formatStringDefinition =
+				VAR _v = ABS ( [Revenue] )
+				RETURN SWITCH ( TRUE (), _v >= 1000000, "$#,0,,.0\M", _v >= 1000, "$#,0,.0\K", "$#,##0.00" )
+
+	/// Total conversions. A conversion is a purchase. Additive.
+	measure Conversions = SUM ( 'Campaign Results'[Daily Conversions] )
+		lineageTag: ee23ef42-06ee-4431-94d2-7eb1cf937d0e
+
+		formatStringDefinition =
+				VAR _v = ABS ( [Conversions] )
+				RETURN SWITCH ( TRUE (), _v >= 1000000, "#,0,,.0\M", _v >= 1000, "#,0,.0\K", "#,##0" )
+
+	/// Total clicks. Additive.
+	measure Clicks = SUM ( 'Campaign Results'[Daily Clicks] )
+		lineageTag: b137d506-99e3-48a0-a978-0b5ed901239d
+
+		formatStringDefinition =
+				VAR _v = ABS ( [Clicks] )
+				RETURN SWITCH ( TRUE (), _v >= 1000000, "#,0,,.0\M", _v >= 1000, "#,0,.0\K", "#,##0" )
+
+	/// Total impressions. Impressions are not people. Additive.
+	measure Impressions = SUM ( 'Campaign Results'[Daily Impressions] )
+		lineageTag: 725d4db0-5a3c-40a6-978c-32fe262be059
+
+		formatStringDefinition =
+				VAR _v = ABS ( [Impressions] )
+				RETURN SWITCH ( TRUE (), _v >= 1000000, "#,0,,.0\M", _v >= 1000, "#,0,.0\K", "#,##0" )
+
+	/// Return on ad spend (ROAS): Revenue divided by Spend. Calculated from the summed Revenue and Spend, so never average it across rows or campaigns. Blank when Spend is zero. Above 1 means revenue exceeds spend; it is not profit.
+	measure ROAS = DIVIDE ( [Revenue], [Spend] )
+		formatString: 0.00
+		lineageTag: 37b95205-d022-40ea-80a6-49bf45605792
+
+	/// Cost per acquisition (CPA): Spend divided by Conversions, that is, spend per purchase. Not a customer acquisition cost: a conversion is not necessarily a new customer. Blank when there are no conversions. Never average it across rows.
+	measure CPA = DIVIDE ( [Spend], [Conversions] )
+		formatString: $#,##0.00
+		lineageTag: 04aafe12-0498-4c1d-88a6-89d664e6fddb
+
+	/// Click-through rate (CTR): Clicks divided by Impressions. Never average it across rows.
+	measure CTR = DIVIDE ( [Clicks], [Impressions] )
+		formatString: 0.0%
+		lineageTag: f3c5bb21-73fe-4478-9fde-d8aebd406646
+
+	/// Conversion rate (CVR): Conversions divided by Clicks. Use this in place of the source Conversion_Rate column, which is not loaded. Never average it across rows.
+	measure CVR = DIVIDE ( [Conversions], [Clicks] )
+		formatString: 0.00%
+		lineageTag: 4d2c67a3-12d5-4710-8d75-95e0d6059881
+
+	/// Cost per click (CPC): Spend divided by Clicks. Never average it across rows.
+	measure CPC = DIVIDE ( [Spend], [Clicks] )
+		formatString: $#,##0.00
+		lineageTag: b8951f8a-1748-421d-833b-ead34504fe46
+
+	/// Number of distinct campaigns with at least one row in the current filter, for example campaigns running in a given week. Counted from Campaign Results, not from Campaign, so date filters apply.
+	measure 'Active Campaigns' = DISTINCTCOUNT ( 'Campaign Results'[Campaign_ID] )
+		formatString: #,##0
+		lineageTag: c71c118c-5017-422b-b405-99c11d2a7f15
+
+	/// Number of campaigns whose ROAS is below 1.0 over the days in the current filter, that is, campaigns that returned less revenue than they cost. A campaign with no rows or zero spend in the filter is not counted. A plain fact, not a verdict: no rule for underperforming or stopping a campaign has been defined. It is revenue against advertising spend only, not profit.
+	measure 'Campaigns Below ROAS 1' =
+			COUNTROWS (
+			    FILTER (
+			        VALUES ( 'Campaign Results'[Campaign_ID] ),
+			        VAR _spend = [Spend]
+			        RETURN _spend > 0 && DIVIDE ( [Revenue], _spend ) < 1
+			    )
+			)
+		formatString: #,##0
+		lineageTag: 807d52f0-52e9-4400-af23-658cffde1fd4
+
+	/// Campaigns Below ROAS 1 divided by Active Campaigns.
+	measure 'Share of Campaigns Below ROAS 1' = DIVIDE ( [Campaigns Below ROAS 1], [Active Campaigns] )
+		formatString: 0.0%
+		lineageTag: 031a6e93-1a5b-4c76-81cc-3dba9af12694
+
+	/// Spend of the campaigns counted in Campaigns Below ROAS 1, over the days in the current filter.
+	measure 'Spend in Campaigns Below ROAS 1' =
+			SUMX (
+			    FILTER (
+			        VALUES ( 'Campaign Results'[Campaign_ID] ),
+			        VAR _spend = [Spend]
+			        RETURN _spend > 0 && DIVIDE ( [Revenue], _spend ) < 1
+			    ),
+			    [Spend]
+			)
+		lineageTag: 92ce4f70-0146-4eda-9a16-52def1679b6d
+
+		formatStringDefinition =
+				VAR _v = ABS ( [Spend in Campaigns Below ROAS 1] )
+				RETURN SWITCH ( TRUE (), _v >= 1000000, "$#,0,,.0\M", _v >= 1000, "$#,0,.0\K", "$#,##0.00" )
+
+	/// Spend in Campaigns Below ROAS 1 divided by Spend.
+	measure 'Share of Spend in Campaigns Below ROAS 1' = DIVIDE ( [Spend in Campaigns Below ROAS 1], [Spend] )
+		formatString: 0.0%
+		lineageTag: 324bf57a-bcd4-4d3f-900f-ecd2e50a545a
+
+	/// Rank of a channel's ROAS among the channels of its own campaign type, 1 = highest ROAS. Only shown when one campaign type and one channel are in view, and the type has at least two channels with a ROAS (so blank for Email and Search). Other filters, such as date, still apply. Rank only: no flag and no benchmark.
+	measure 'ROAS Rank in Type' =
+			VAR _channel = SELECTEDVALUE ( 'Campaign'[Channel_Used] )
+			VAR _type = SELECTEDVALUE ( 'Campaign'[Campaign_Type] )
+			VAR _channels =
+			    FILTER (
+			        ADDCOLUMNS (
+			            CALCULATETABLE ( VALUES ( 'Campaign'[Channel_Used] ), REMOVEFILTERS ( 'Campaign'[Channel_Used] ) ),
+			            "@ROAS", [ROAS]
+			        ),
+			        NOT ISBLANK ( [@ROAS] )
+			    )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _channel ) && NOT ISBLANK ( _type ) && NOT ISBLANK ( [ROAS] ) && COUNTROWS ( _channels ) > 1,
+			        RANKX ( _channels, [@ROAS], [ROAS], DESC )
+			    )
+		formatString: 0
+		lineageTag: 98eba242-180e-494d-b7fb-68691b6c2514
+
+	/// Rank of a campaign type's ROAS among all campaign types, 1 = highest ROAS. Blank when a channel is in view, so a channel is never ranked against types. Rank only: no flag and no benchmark.
+	measure 'ROAS Rank across Types' =
+			VAR _type = SELECTEDVALUE ( 'Campaign'[Campaign_Type] )
+			VAR _types =
+			    FILTER (
+			        ADDCOLUMNS (
+			            CALCULATETABLE ( VALUES ( 'Campaign'[Campaign_Type] ), REMOVEFILTERS ( 'Campaign'[Campaign_Type] ) ),
+			            "@ROAS", [ROAS]
+			        ),
+			        NOT ISBLANK ( [@ROAS] )
+			    )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _type ) && NOT ISINSCOPE ( 'Campaign'[Channel_Used] ) && NOT ISBLANK ( [ROAS] ) && COUNTROWS ( _types ) > 1,
+			        RANKX ( _types, [@ROAS], [ROAS], DESC )
+			    )
+		formatString: 0
+		lineageTag: f64aa1b9-46af-401f-bf18-a7033e6e2695
+
+	/// Rank of a customer segment's ROAS among all customer segments, 1 = highest ROAS. Other filters, such as date, still apply. Rank only: no flag and no benchmark.
+	measure 'ROAS Rank of Segment' =
+			VAR _segment = SELECTEDVALUE ( 'Campaign'[Customer_Segment] )
+			VAR _segments =
+			    FILTER (
+			        ADDCOLUMNS (
+			            CALCULATETABLE ( VALUES ( 'Campaign'[Customer_Segment] ), REMOVEFILTERS ( 'Campaign'[Customer_Segment] ) ),
+			            "@ROAS", [ROAS]
+			        ),
+			        NOT ISBLANK ( [@ROAS] )
+			    )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _segment ) && NOT ISBLANK ( [ROAS] ) && COUNTROWS ( _segments ) > 1,
+			        RANKX ( _segments, [@ROAS], [ROAS], DESC )
+			    )
+		formatString: 0
+		lineageTag: afaf5cad-ea35-4cce-a127-ab1b2c27bb5c
+
+	/// Monday of the latest week that has all 7 days in the Date table. Found from the data, not hard coded. Ignores the Week slicer. The partial last week is not used.
+	measure 'Latest Full Week Start' = CALCULATE ( MAX ( 'Date'[Week Start] ), REMOVEFILTERS ( 'Date' ), 'Date'[Days In Week] = 7 )
+		formatString: dd/MM/yyyy
+		lineageTag: 48564da4-07c1-46ce-84fe-121257dfc08d
+
+	/// Monday of the week chosen in the Week slicer, or the latest full week when no week is chosen. Used by the selected-week and change measures.
+	measure 'Selected Week Start' = COALESCE ( SELECTEDVALUE ( 'Date'[Week Start] ), [Latest Full Week Start] )
+		formatString: dd/MM/yyyy
+		lineageTag: 943a13ab-95c9-408c-9236-69a2b605bb21
+
+	/// Text caption saying which week the cards show and which week they are compared with.
+	measure 'Selected Week Label' =
+			VAR _week = [Selected Week Start]
+			VAR _first = CALCULATE ( MIN ( 'Date'[Date] ), REMOVEFILTERS ( 'Date' ) )
+			RETURN
+			    "Week of " & FORMAT ( _week, "dd mmm yyyy" ) & " to " & FORMAT ( _week + 6, "dd mmm yyyy" )
+			        & IF (
+			            _week - 7 < _first - WEEKDAY ( _first, 2 ) + 1,
+			            ". No earlier week in the data.",
+			            ", compared with the week of " & FORMAT ( _week - 7, "dd mmm yyyy" )
+			        )
+		lineageTag: 6762742f-267a-40d4-9305-a208ddc4c953
+
+	/// Spend for the selected week (latest full week when none is chosen). Ignores the Week slicer; other filters apply.
+	measure 'Spend (Selected Week)' =
+			VAR _week = [Selected Week Start]
+			RETURN CALCULATE ( [Spend], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week )
+		lineageTag: 66d3d530-29e8-40dd-a471-71c062b38795
+
+		formatStringDefinition =
+				VAR _v = ABS ( [Spend (Selected Week)] )
+				RETURN SWITCH ( TRUE (), _v >= 1000000, "$#,0,,.0\M", _v >= 1000, "$#,0,.0\K", "$#,##0.00" )
+
+	/// Revenue for the selected week (latest full week when none is chosen). Treated as gross, as recorded. Ignores the Week slicer; other filters apply.
+	measure 'Revenue (Selected Week)' =
+			VAR _week = [Selected Week Start]
+			RETURN CALCULATE ( [Revenue], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week )
+		lineageTag: 217daaed-af8c-4550-8adf-fa94f99dc60c
+
+		formatStringDefinition =
+				VAR _v = ABS ( [Revenue (Selected Week)] )
+				RETURN SWITCH ( TRUE (), _v >= 1000000, "$#,0,,.0\M", _v >= 1000, "$#,0,.0\K", "$#,##0.00" )
+
+	/// ROAS (Revenue divided by Spend) for the selected week, calculated from that week's summed Revenue and Spend. Not profit.
+	measure 'ROAS (Selected Week)' =
+			VAR _week = [Selected Week Start]
+			RETURN CALCULATE ( [ROAS], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week )
+		formatString: 0.00
+		lineageTag: d565b3bb-54cf-4d26-8b63-f1b332f32395
+
+	/// Cost per acquisition (Spend divided by Conversions) for the selected week. Spend per purchase, not a customer acquisition cost.
+	measure 'CPA (Selected Week)' =
+			VAR _week = [Selected Week Start]
+			RETURN CALCULATE ( [CPA], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week )
+		formatString: $#,##0.00
+		lineageTag: 8cdb35be-f5e6-4d22-b166-f0dea16476dc
+
+	/// Distinct campaigns with at least one row in the selected week.
+	measure 'Active Campaigns (Selected Week)' =
+			VAR _week = [Selected Week Start]
+			RETURN CALCULATE ( [Active Campaigns], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week )
+		formatString: #,##0
+		lineageTag: 01ba2bfe-59bd-4348-b414-1e53d4e02d30
+
+	/// Percentage change in Spend from the previous week to the selected week. Direction only, not a verdict. Blank when there is no previous week or it is zero. A partial week gives a misleading change.
+	measure 'Spend Change vs Previous Week' =
+			VAR _week = [Selected Week Start]
+			VAR _current = CALCULATE ( [Spend], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week )
+			VAR _previous = CALCULATE ( [Spend], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week - 7 )
+			RETURN DIVIDE ( _current - _previous, _previous )
+		formatString: ▲ 0.0%" vs LW";▼ 0.0%" vs LW";0.0%" vs LW"
+		lineageTag: 53398d8e-ff71-42a4-b075-1152f84b42d9
+
+	/// Percentage change in Revenue from the previous week to the selected week. Direction only, not a verdict. Blank when there is no previous week or it is zero. A partial week gives a misleading change.
+	measure 'Revenue Change vs Previous Week' =
+			VAR _week = [Selected Week Start]
+			VAR _current = CALCULATE ( [Revenue], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week )
+			VAR _previous = CALCULATE ( [Revenue], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week - 7 )
+			RETURN DIVIDE ( _current - _previous, _previous )
+		formatString: ▲ 0.0%" vs LW";▼ 0.0%" vs LW";0.0%" vs LW"
+		lineageTag: 322b7f8a-abb4-42cc-aad4-0c7e641d55e4
+
+	/// Percentage change in ROAS from the previous week to the selected week. Direction only, not a verdict. Blank when there is no previous week or it is zero.
+	measure 'ROAS Change vs Previous Week' =
+			VAR _week = [Selected Week Start]
+			VAR _current = CALCULATE ( [ROAS], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week )
+			VAR _previous = CALCULATE ( [ROAS], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week - 7 )
+			RETURN DIVIDE ( _current - _previous, _previous )
+		formatString: ▲ 0.0%" vs LW";▼ 0.0%" vs LW";0.0%" vs LW"
+		lineageTag: b3134861-ef34-483d-bd72-6344b602d61e
+
+	/// Percentage change in CPA from the previous week to the selected week. Direction only, not a verdict. Blank when there is no previous week or it is zero.
+	measure 'CPA Change vs Previous Week' =
+			VAR _week = [Selected Week Start]
+			VAR _current = CALCULATE ( [CPA], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week )
+			VAR _previous = CALCULATE ( [CPA], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week - 7 )
+			RETURN DIVIDE ( _current - _previous, _previous )
+		formatString: ▲ 0.0%" vs LW";▼ 0.0%" vs LW";0.0%" vs LW"
+		lineageTag: da8842c2-8821-4dbc-995d-bcb1d7de8fae
+
+	/// Percentage change in Active Campaigns from the previous week to the selected week. Direction only, not a verdict. Blank when there is no previous week or it is zero. A partial week gives a misleading change.
+	measure 'Active Campaigns Change vs Previous Week' =
+			VAR _week = [Selected Week Start]
+			VAR _current = CALCULATE ( [Active Campaigns], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week )
+			VAR _previous = CALCULATE ( [Active Campaigns], REMOVEFILTERS ( 'Date' ), 'Date'[Week Start] = _week - 7 )
+			RETURN DIVIDE ( _current - _previous, _previous )
+		formatString: ▲ 0.0%" vs LW";▼ 0.0%" vs LW";0.0%" vs LW"
+		lineageTag: 7b4f6c47-2882-468d-be9b-b8c7e5c89f08
+
+	column Placeholder
+		dataType: int64
+		isHidden
+		lineageTag: dd1da719-6192-45a6-b049-c4a0b014c3e6
+		summarizeBy: none
+		sourceColumn: Placeholder
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				    Source = #table(type table [Placeholder = Int64.Type], {})
+				in
+				    Source
+
